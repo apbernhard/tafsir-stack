@@ -1,0 +1,54 @@
+version: '3.1'
+services:
+    db:
+      build:
+        context: ./postgres
+        dockerfile: Dockerfile
+      container_name: postgres_container
+      restart: always
+      ports: 
+        - "5432:5432"
+      expose:
+        - "5432"
+      environment:
+        POSTGRES_DB: tafsir
+        POSTGRES_USER: postgres
+        POSTGRES_PASSWORD: postgres
+        SUPERSET_USER: superset
+        SUPERSET_PASSWORD: superset
+        SUPERSET_DB: superset
+      volumes:
+        - postgresql-data:/var/lib/postgresql/data
+        - ./postgres/init.sql:/docker-entrypoint-initdb/init.sql
+    pgadmin:
+        image: dpage/pgadmin4:7.6
+        container_name: pgadmin_container
+        restart: always
+        ports:
+          - "80:80"
+        environment:
+          PGADMIN_DEFAULT_EMAIL: admin@pgadmin.com
+          PGADMIN_DEFAULT_PASSWORD: password
+        volumes:
+          - pgadmin-data:/var/lib/pgadmin
+        depends_on:
+          - db
+    superset:
+        build:
+          context: ./superset
+          dockerfile: Dockerfile
+        container_name: superset_container
+        restart: always
+        environment:
+          - ADMIN_USERNAME=admin
+          - ADMIN_EMAIL=admin@superset.com1
+          - ADMIN_PASSWORD=admin
+        ports:
+          - '8088:8088'
+        depends_on:
+          - db
+volumes:
+  postgresql-data:
+    driver: local
+  pgadmin-data:
+    driver: local
